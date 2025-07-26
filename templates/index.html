@@ -106,11 +106,24 @@
                                             {% for definition in meaning.definitions %}
                                                 <li class="mb-3">
                                                     <p class="fw-bold mb-2">{{ definition.definition }}</p>
+                                                    {% if definition.korean_definition %}
+                                                        <div class="korean-translation">
+                                                            <i class="fas fa-language me-2 text-info"></i>
+                                                            <strong>한국어:</strong>
+                                                            <span class="korean-text">{{ definition.korean_definition }}</span>
+                                                        </div>
+                                                    {% endif %}
                                                     
                                                     {% if definition.example %}
                                                         <div class="example-box p-3 rounded">
                                                             <strong>예문 (Example):</strong>
                                                             <em>"{{ definition.example }}"</em>
+                                                            {% if definition.korean_example %}
+                                                                <div class="mt-3 pt-2 border-top border-info-subtle">
+                                                                    <strong>한국어 예문:</strong>
+                                                                    <em class="korean-text">"{{ definition.korean_example }}"</em>
+                                                                </div>
+                                                            {% endif %}
                                                         </div>
                                                     {% endif %}
                                                     

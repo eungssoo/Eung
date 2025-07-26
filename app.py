@@ -6,6 +6,8 @@ from flask import Flask, render_template, request, send_file, flash, redirect, u
 from gtts import gTTS
 from urllib.parse import quote
 import json
+import time
+from googletrans import Translator
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,6 +18,22 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 
 # Configuration
 DICTIONARY_API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/{}"
+
+# Initialize translator
+translator = Translator()
+
+def translate_to_korean(text):
+    """Translate English text to Korean using Google Translate"""
+    try:
+        if not text or text.strip() == '':
+            return text
+            
+        result = translator.translate(text, src='en', dest='ko')
+        return result.text if hasattr(result, 'text') else text
+        
+    except Exception as e:
+        logging.error(f"Translation error: {e}")
+        return text
 
 @app.route('/')
 def index():
@@ -60,8 +78,25 @@ def word_definition(word):
                         phonetic_text = phonetic.get('text')
                         break
                 
-                # Extract meanings
+                # Extract meanings and translate definitions to Korean
                 meanings = word_data.get('meanings', [])
+                
+                # Add Korean translations to definitions
+                for meaning in meanings:
+                    definitions = meaning.get('definitions', [])
+                    for definition in definitions:
+                        if 'definition' in definition:
+                            # Translate the definition to Korean
+                            korean_definition = translate_to_korean(definition['definition'])
+                            definition['korean_definition'] = korean_definition
+                            
+                            # Also translate examples if they exist
+                            if 'example' in definition and definition['example']:
+                                korean_example = translate_to_korean(definition['example'])
+                                definition['korean_example'] = korean_example
+                            
+                            # Small delay to avoid overwhelming the free API
+                            time.sleep(0.1)
                 
                 return render_template('index.html', 
                                      word=word, 

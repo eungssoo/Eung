@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Flask-based English dictionary web application that allows users to search for English word definitions and provides text-to-speech pronunciation functionality. The app features a clean, responsive interface with dark theme support and maintains a local search history for user convenience.
+This is a Flask-based English dictionary web application that allows users to search for English word definitions with Korean translations and provides text-to-speech pronunciation functionality. The app features a clean, responsive interface with dark theme support and maintains a local search history for user convenience.
 
 ## User Preferences
 
@@ -48,6 +48,12 @@ Preferred communication style: Simple, everyday language.
 - **Library**: Google Text-to-Speech (gTTS) for pronunciation generation
 - **Audio Delivery**: Temporary file generation and streaming to client
 - **User Control**: Audio player controls for pronunciation playback
+
+### Korean Translation Integration
+- **Translation API**: Google Translate (googletrans library) for English-to-Korean translation
+- **Real-time Translation**: Automatic Korean translations for word definitions and examples
+- **Styling**: Custom CSS classes for Korean text with proper font families
+- **User Experience**: Seamless bilingual dictionary experience
 
 ## Data Flow
 
