@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 사전 | English Dictionary</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Header -->
+        <header class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-book-open text-info me-3"></i>
+                영어 사전
+            </h1>
+            <p class="lead text-muted">English Dictionary with Pronunciation</p>
+        </header>
+
+        <!-- Search Form -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 col-lg-6">
+                <form method="POST" action="{{ url_for('search_word') }}" class="search-form">
+                    <div class="input-group input-group-lg">
+                        <input type="text" 
+                               class="form-control" 
+                               name="word" 
+                               placeholder="영어 단어를 입력하세요 (Enter an English word)"
+                               value="{{ word if word else '' }}"
+                               required
+                               autocomplete="off">
+                        <button class="btn btn-outline-info" type="submit">
+                            <i class="fas fa-search me-2"></i>검색
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8 col-lg-6">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Word Definition Results -->
+        {% if show_results and word_data %}
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8">
+                    <!-- Word Header -->
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <h2 class="card-title display-5 mb-3">{{ word.title() }}</h2>
+                            
+                            {% if phonetic %}
+                                <p class="text-muted fs-5 mb-3">{{ phonetic }}</p>
+                            {% endif %}
+                            
+                            <!-- Pronunciation Button -->
+                            <button class="btn btn-outline-success btn-lg" 
+                                    onclick="playPronunciation('{{ word }}')"
+                                    id="pronounceBtn">
+                                <i class="fas fa-volume-up me-2"></i>
+                                발음 듣기 (Listen to Pronunciation)
+                            </button>
+                            
+                            <!-- Audio element for pronunciation -->
+                            <audio id="pronunciationAudio" preload="none" style="display: none;">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+
+                    <!-- Meanings -->
+                    {% if meanings %}
+                        {% for meaning in meanings %}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4 class="mb-0">
+                                        <span class="badge bg-secondary me-2">{{ meaning.partOfSpeech|title }}</span>
+                                        품사 (Part of Speech)
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    {% if meaning.definitions %}
+                                        <ol class="definitions-list">
+                                            {% for definition in meaning.definitions %}
+                                                <li class="mb-3">
+                                                    <p class="fw-bold mb-2">{{ definition.definition }}</p>
+                                                    
+                                                    {% if definition.example %}
+                                                        <div class="example-box p-3 rounded">
+                                                            <strong>예문 (Example):</strong>
+                                                            <em>"{{ definition.example }}"</em>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if definition.synonyms %}
+                                                        <div class="mt-2">
+                                                            <strong>유의어 (Synonyms):</strong>
+                                                            {% for synonym in definition.synonyms %}
+                                                                <span class="badge bg-info me-1">{{ synonym }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    {% if definition.antonyms %}
+                                                        <div class="mt-2">
+                                                            <strong>반의어 (Antonyms):</strong>
+                                                            {% for antonym in definition.antonyms %}
+                                                                <span class="badge bg-warning me-1">{{ antonym }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ol>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Search History -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            검색 기록 (Search History)
+                        </h5>
+                    </div>
+                    <div class="card-body" id="searchHistory">
+                        <p class="text-muted">검색한 단어가 여기에 표시됩니다. (Searched words will appear here.)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-5 pt-4 border-top">
+            <p class="text-muted">
+                Powered by 
+                <a href="https://dictionaryapi.dev/" target="_blank" class="text-info">Free Dictionary API</a> 
+                and 
+                <a href="https://gtts.readthedocs.io/" target="_blank" class="text-info">Google Text-to-Speech</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
