@@ -19,47 +19,119 @@ function playPronunciation(word) {
     btn.classList.add('btn-loading');
     btn.disabled = true;
     
-    // Set audio source and play
-    audio.src = `/pronounce/${encodeURIComponent(word)}`;
+    // Reset audio element
+    audio.pause();
+    audio.currentTime = 0;
     
-    // Handle audio events
+    // Set audio source
+    const audioUrl = `/pronounce/${encodeURIComponent(word)}`;
+    console.log('Loading audio from:', audioUrl);
+    
+    // Try multiple methods for audio playback
+    
+    // Method 1: Use existing audio element
+    audio.src = audioUrl;
+    audio.load();
+    
+    // Apply volume setting
+    const volumeSlider = document.getElementById('volumeSlider');
+    if (volumeSlider) {
+        audio.volume = volumeSlider.value / 100;
+    } else {
+        audio.volume = 0.7; // Default volume
+    }
+    
+    // Handle audio events with multiple fallbacks
+    let hasPlayed = false;
+    
     audio.onloadstart = function() {
         console.log('Audio loading started');
     };
     
     audio.oncanplay = function() {
         console.log('Audio can start playing');
-        audio.play().then(() => {
-            console.log('Audio playing successfully');
-        }).catch(error => {
-            console.error('Error playing audio:', error);
-            alert('발음을 재생할 수 없습니다. (Cannot play pronunciation.)');
-        });
+        if (!hasPlayed) {
+            hasPlayed = true;
+            tryPlayAudio();
+        }
+    };
+    
+    audio.oncanplaythrough = function() {
+        console.log('Audio can play through');
+        if (!hasPlayed) {
+            hasPlayed = true;
+            tryPlayAudio();
+        }
     };
     
     audio.onended = function() {
         console.log('Audio finished playing');
-        // Reset button state
-        btn.innerHTML = originalContent;
-        btn.classList.remove('btn-loading');
-        btn.disabled = false;
+        resetButton();
     };
     
     audio.onerror = function(e) {
         console.error('Audio error:', e);
-        alert('발음을 불러올 수 없습니다. (Cannot load pronunciation.)');
-        // Reset button state
+        console.log('Trying fallback method...');
+        
+        // Fallback: Create new audio element
+        const fallbackAudio = new Audio(audioUrl);
+        fallbackAudio.volume = audio.volume;
+        
+        fallbackAudio.oncanplay = function() {
+            fallbackAudio.play().then(() => {
+                console.log('Fallback audio playing successfully');
+            }).catch(error => {
+                console.error('Fallback audio also failed:', error);
+                resetButton();
+                alert('발음을 재생할 수 없습니다. 브라우저에서 오디오 재생을 허용해주세요.');
+            });
+        };
+        
+        fallbackAudio.onended = function() {
+            resetButton();
+        };
+        
+        fallbackAudio.onerror = function() {
+            resetButton();
+            alert('발음을 불러올 수 없습니다. 네트워크 연결을 확인해주세요.');
+        };
+        
+        fallbackAudio.load();
+    };
+    
+    function tryPlayAudio() {
+        audio.play().then(() => {
+            console.log('Audio playing successfully');
+        }).catch(error => {
+            console.error('Error playing audio:', error);
+            
+            // User interaction may be required
+            if (error.name === 'NotAllowedError') {
+                resetButton();
+                alert('브라우저에서 자동 재생이 차단되었습니다. 다시 클릭해주세요.');
+            } else {
+                // Try again after a short delay
+                setTimeout(() => {
+                    audio.play().catch(() => {
+                        resetButton();
+                        alert('발음을 재생할 수 없습니다.');
+                    });
+                }, 100);
+            }
+        });
+    }
+    
+    function resetButton() {
         btn.innerHTML = originalContent;
         btn.classList.remove('btn-loading');
         btn.disabled = false;
-    };
+    }
     
-    // Also reset button state after a timeout as fallback
+    // Fallback timeout
     setTimeout(() => {
         if (btn.disabled) {
-            btn.innerHTML = originalContent;
-            btn.classList.remove('btn-loading');
-            btn.disabled = false;
+            console.log('Timeout reached, resetting button');
+            resetButton();
         }
     }, 10000); // 10 second timeout
 }

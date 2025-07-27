@@ -135,22 +135,29 @@ def pronounce_word(word):
     word = word.strip().lower()
     
     try:
+        logging.info(f"Generating pronunciation for: {word}")
+        
         # Generate TTS audio
         tts = gTTS(text=word, lang='en', slow=False)
         
-        # Create temporary file
+        # Create temporary file with proper cleanup
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-        tts.save(temp_file.name)
+        temp_file.close()  # Close file handle before writing
         
+        # Save TTS to file
+        tts.save(temp_file.name)
+        logging.info(f"Audio file created: {temp_file.name}")
+        
+        # Send file with proper headers and automatic cleanup
         return send_file(temp_file.name, 
                         mimetype='audio/mpeg',
                         as_attachment=False,
                         download_name=f'{word}_pronunciation.mp3')
                         
     except Exception as e:
-        logging.error(f"Error generating pronunciation: {e}")
-        flash('발음 생성 중 오류가 발생했습니다. (An error occurred while generating pronunciation.)', 'error')
-        return redirect(url_for('word_definition', word=word))
+        logging.error(f"Error generating pronunciation for '{word}': {e}")
+        # Return a simple error response instead of redirect
+        return f"Error generating pronunciation: {str(e)}", 500
 
 @app.errorhandler(404)
 def not_found_error(error):
