@@ -12,8 +12,10 @@ from flask import Flask
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Create the app
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # api/index.py 기준 상위 2단계 경로
+template_path = os.path.join(BASE_DIR, 'templates')
+
+app = Flask(__name__, template_folder=template_path)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 
 # Configuration
