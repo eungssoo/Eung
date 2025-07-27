@@ -3,18 +3,58 @@ import logging
 import requests
 import tempfile
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 from gtts import gTTS
 from urllib.parse import quote
 import json
 import time
+from datetime import datetime
 from googletrans import Translator
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Create the app
+class Base(DeclarativeBase):
+    pass
+
+# Create the app and database
+db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+
+# Configure the database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+db.init_app(app)
+
+# Database Models
+class SearchHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(100), nullable=False)
+    searched_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))  # IPv6 support
+    
+    def __repr__(self):
+        return f'<SearchHistory {self.word}>'
+
+class FavoriteWord(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(100), nullable=False)
+    definition = db.Column(db.Text)
+    korean_translation = db.Column(db.Text)
+    added_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))  # IPv6 support
+    
+    def __repr__(self):
+        return f'<FavoriteWord {self.word}>'
+
+# Create database tables
+with app.app_context():
+    db.create_all()
 
 # Configuration
 DICTIONARY_API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/{}"
@@ -29,7 +69,13 @@ def translate_to_korean(text):
             return text
             
         result = translator.translate(text, src='en', dest='ko')
-        return result.text if hasattr(result, 'text') else text
+        # Handle both single result and list results
+        if hasattr(result, 'text'):
+            return result.text
+        elif isinstance(result, list) and len(result) > 0 and hasattr(result[0], 'text'):
+            return result[0].text
+        else:
+            return text
         
     except Exception as e:
         logging.error(f"Translation error: {e}")
@@ -60,6 +106,18 @@ def search_word():
 def word_definition(word):
     """Display word definition and provide pronunciation"""
     word = word.strip().lower()
+    
+    # Save to search history
+    try:
+        search_entry = SearchHistory(
+            word=word,
+            ip_address=request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        )
+        db.session.add(search_entry)
+        db.session.commit()
+    except Exception as e:
+        logging.error(f"Error saving search history: {e}")
+        db.session.rollback()
     
     try:
         # Call Dictionary API
@@ -146,6 +204,107 @@ def pronounce_word(word):
         logging.error(f"Error generating pronunciation: {e}")
         flash('발음 생성 중 오류가 발생했습니다. (An error occurred while generating pronunciation.)', 'error')
         return redirect(url_for('word_definition', word=word))
+
+@app.route('/favorite/<word>', methods=['POST'])
+def add_to_favorites(word):
+    """Add word to favorites"""
+    word = word.strip().lower()
+    
+    try:
+        # Check if already in favorites
+        existing = FavoriteWord.query.filter_by(
+            word=word,
+            ip_address=request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        ).first()
+        
+        if existing:
+            flash(f"'{word}'은(는) 이미 즐겨찾기에 있습니다. ('{word}' is already in favorites.)", 'info')
+        else:
+            # Get definition and Korean translation for storage
+            response = requests.get(DICTIONARY_API_URL.format(quote(word)))
+            definition_text = ""
+            korean_text = ""
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data and data[0].get('meanings'):
+                    first_definition = data[0]['meanings'][0]['definitions'][0]['definition']
+                    definition_text = first_definition
+                    korean_text = translate_to_korean(first_definition)
+            
+            favorite = FavoriteWord(
+                word=word,
+                definition=definition_text,
+                korean_translation=korean_text,
+                ip_address=request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+            )
+            db.session.add(favorite)
+            db.session.commit()
+            flash(f"'{word}'을(를) 즐겨찾기에 추가했습니다. (Added '{word}' to favorites.)", 'success')
+            
+    except Exception as e:
+        logging.error(f"Error adding to favorites: {e}")
+        flash('즐겨찾기 추가 중 오류가 발생했습니다. (Error adding to favorites.)', 'error')
+        db.session.rollback()
+    
+    return redirect(url_for('word_definition', word=word))
+
+@app.route('/favorites')
+def view_favorites():
+    """View all favorite words"""
+    try:
+        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        favorites = FavoriteWord.query.filter_by(ip_address=ip_address)\
+                                    .order_by(FavoriteWord.added_at.desc()).all()
+        return render_template('favorites.html', favorites=favorites)
+    except Exception as e:
+        logging.error(f"Error loading favorites: {e}")
+        flash('즐겨찾기를 불러오는 중 오류가 발생했습니다. (Error loading favorites.)', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/remove_favorite/<int:favorite_id>', methods=['POST'])
+def remove_favorite(favorite_id):
+    """Remove word from favorites"""
+    try:
+        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        favorite = FavoriteWord.query.filter_by(id=favorite_id, ip_address=ip_address).first()
+        
+        if favorite:
+            db.session.delete(favorite)
+            db.session.commit()
+            flash(f"'{favorite.word}'을(를) 즐겨찾기에서 제거했습니다. (Removed '{favorite.word}' from favorites.)", 'info')
+        else:
+            flash('즐겨찾기 항목을 찾을 수 없습니다. (Favorite item not found.)', 'error')
+            
+    except Exception as e:
+        logging.error(f"Error removing favorite: {e}")
+        flash('즐겨찾기 제거 중 오류가 발생했습니다. (Error removing favorite.)', 'error')
+        db.session.rollback()
+    
+    return redirect(url_for('view_favorites'))
+
+@app.route('/api/search_history')
+def get_search_history():
+    """Get recent search history from database"""
+    try:
+        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        # Use subquery to get distinct words with their latest search date
+        subquery = db.session.query(
+            SearchHistory.word,
+            db.func.max(SearchHistory.searched_at).label('latest_search')
+        ).filter_by(ip_address=ip_address)\
+         .group_by(SearchHistory.word)\
+         .subquery()
+        
+        recent_searches = db.session.query(subquery.c.word)\
+                                  .order_by(subquery.c.latest_search.desc())\
+                                  .limit(10).all()
+        
+        words = [search.word for search in recent_searches]
+        return jsonify(words)
+    except Exception as e:
+        logging.error(f"Error getting search history: {e}")
+        return jsonify([])
 
 @app.errorhandler(404)
 def not_found_error(error):

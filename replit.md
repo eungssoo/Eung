@@ -24,8 +24,9 @@ Preferred communication style: Simple, everyday language.
 - **Template Engine**: Jinja2 (Flask's default templating engine)
 
 ### Data Storage
-- **Local Storage**: Browser localStorage for search history (client-side only)
-- **No Database**: Application doesn't use persistent server-side data storage
+- **PostgreSQL Database**: Server-side persistent storage for search history and favorites
+- **Search History**: Database-stored search history with IP-based user tracking
+- **Favorites System**: User can save words with definitions and Korean translations
 - **Session Management**: Flask sessions with configurable secret key
 
 ## Key Components
@@ -35,6 +36,11 @@ Preferred communication style: Simple, everyday language.
   - `/` - Homepage with search form
   - `/search` - POST endpoint for word search with validation
   - `/word/<word>` - Word definition display page
+  - `/favorites` - View saved favorite words
+  - `/favorite/<word>` - Add word to favorites
+  - `/remove_favorite/<id>` - Remove word from favorites
+  - `/api/search_history` - Get recent search history from database
+- **Database Models**: SearchHistory and FavoriteWord with PostgreSQL backend
 - **Word Validation**: Basic alphabetic character validation
 - **Error Handling**: Flash message system for user feedback
 

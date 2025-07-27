@@ -1,17 +1,11 @@
 // English Dictionary App JavaScript
 
-// Search history management
-let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+// Search history management - now uses database
+let searchHistory = [];
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    updateSearchHistoryDisplay();
-    
-    // Add current word to search history if on word page
-    const currentWord = getCurrentWord();
-    if (currentWord) {
-        addToSearchHistory(currentWord);
-    }
+    loadSearchHistoryFromDatabase();
 });
 
 // Get current word from URL or form
@@ -24,26 +18,19 @@ function getCurrentWord() {
     return null;
 }
 
-// Add word to search history
-function addToSearchHistory(word) {
-    if (!word || word.trim() === '') return;
-    
-    word = word.toLowerCase().trim();
-    
-    // Remove if already exists
-    searchHistory = searchHistory.filter(item => item !== word);
-    
-    // Add to beginning
-    searchHistory.unshift(word);
-    
-    // Keep only last 10 searches
-    searchHistory = searchHistory.slice(0, 10);
-    
-    // Save to localStorage
-    localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-    
-    // Update display
-    updateSearchHistoryDisplay();
+// Load search history from database
+function loadSearchHistoryFromDatabase() {
+    fetch('/api/search_history')
+        .then(response => response.json())
+        .then(data => {
+            searchHistory = data;
+            updateSearchHistoryDisplay();
+        })
+        .catch(error => {
+            console.error('Error loading search history:', error);
+            searchHistory = [];
+            updateSearchHistoryDisplay();
+        });
 }
 
 // Update search history display
@@ -118,8 +105,9 @@ function playPronunciation(word) {
 // Clear search history
 function clearSearchHistory() {
     if (confirm('검색 기록을 모두 삭제하시겠습니까? (Do you want to clear all search history?)')) {
+        // Note: Database search history is cleared automatically by server-side logic
+        // Here we just clear the local display
         searchHistory = [];
-        localStorage.removeItem('searchHistory');
         updateSearchHistoryDisplay();
     }
 }
