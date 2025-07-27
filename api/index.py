@@ -7,6 +7,7 @@ from gtts import gTTS
 from urllib.parse import quote
 import time
 from googletrans import Translator
+from flask import Flask
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -60,6 +61,10 @@ def search_word():
         return redirect(url_for('index'))
     
     return redirect(url_for('word_definition', word=word))
+
+@app.route("/")
+def home():
+    return "Hello, Vercel Flask!"
 
 @app.route('/word/<word>')
 def word_definition(word):
