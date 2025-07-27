@@ -66,6 +66,10 @@ def search_word():
 def home():
     return "Hello, Vercel Flask!"
 
+@app.route('/favicon.png')
+def favicon_png():
+    return '', 204
+
 @app.route("/favicon.ico")
 def favicon():
     return "", 204  # No Content 응답
