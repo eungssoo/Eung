@@ -153,6 +153,42 @@
     color: #6c757d;
 }
 
+/* Volume Control Styling */
+.volume-control {
+    background-color: rgba(var(--bs-secondary-rgb), 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(var(--bs-secondary-rgb), 0.2);
+}
+
+.volume-slider {
+    accent-color: var(--bs-info);
+}
+
+.volume-percentage {
+    font-weight: 500;
+    min-width: 35px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+/* Volume icon transitions */
+.volume-control i {
+    transition: color 0.3s ease;
+}
+
+/* Light theme volume control */
+[data-bs-theme="light"] .volume-control {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-color: rgba(0, 123, 255, 0.2);
+}
+
+/* Dark theme volume control */
+[data-bs-theme="dark"] .volume-control {
+    background-color: rgba(13, 202, 240, 0.1);
+    border-color: rgba(13, 202, 240, 0.2);
+}
+
 /* Theme transition animation */
 html {
     transition: color-scheme 0.3s ease;
