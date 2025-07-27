@@ -64,18 +64,6 @@ def search_word():
     
     return redirect(url_for('word_definition', word=word))
 
-@app.route("/")
-def home():
-    return "Hello, Vercel Flask!"
-
-@app.route('/favicon.png')
-def favicon_png():
-    return '', 204
-
-@app.route("/favicon.ico")
-def favicon():
-    return "", 204  # No Content 응답
-
 @app.route('/word/<word>')
 def word_definition(word):
     """Display word definition"""
@@ -145,27 +133,36 @@ def word_definition(word):
         return redirect(url_for('index'))
 
 @app.route('/pronounce/<word>')
-def pronounce_word(word):
+@app.route('/pronounce/<word>/<speed>')
+def pronounce_word(word, speed='normal'):
     """Generate and serve pronunciation audio for the word"""
     word = word.strip().lower()
+    is_slow = speed == 'slow'
     
     try:
-        # Generate TTS audio
-        tts = gTTS(text=word, lang='en', slow=False)
+        logging.info(f"Generating pronunciation for: {word} (speed: {speed})")
         
-        # Create temporary file
+        # Generate TTS audio with speed setting
+        tts = gTTS(text=word, lang='en', slow=is_slow)
+        
+        # Create temporary file with proper cleanup
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-        tts.save(temp_file.name)
+        temp_file.close()  # Close file handle before writing
         
+        # Save TTS to file
+        tts.save(temp_file.name)
+        logging.info(f"Audio file created: {temp_file.name}")
+        
+        # Send file with proper headers and automatic cleanup
         return send_file(temp_file.name, 
                         mimetype='audio/mpeg',
                         as_attachment=False,
-                        download_name=f'{word}_pronunciation.mp3')
+                        download_name=f'{word}_pronunciation_{speed}.mp3')
                         
     except Exception as e:
-        logging.error(f"Error generating pronunciation: {e}")
-        flash('발음 생성 중 오류가 발생했습니다. (An error occurred while generating pronunciation.)', 'error')
-        return redirect(url_for('word_definition', word=word))
+        logging.error(f"Error generating pronunciation for '{word}': {e}")
+        # Return a simple error response instead of redirect
+        return f"Error generating pronunciation: {str(e)}", 500
 
 @app.errorhandler(404)
 def not_found_error(error):
