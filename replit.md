@@ -34,22 +34,29 @@ Preferred communication style: Simple, everyday language.
   - `/` - Homepage with search form
   - `/search` - POST endpoint for word search with validation
   - `/word/<word>` - Word definition display page
-  - `/pronounce/<word>` - Audio pronunciation generation
+  - `/pronounce/<word>` - Audio pronunciation generation (normal speed)
+  - `/pronounce/<word>/<speed>` - Audio pronunciation with speed control (normal/slow)
 - **Word Validation**: Basic alphabetic character validation
 - **Error Handling**: Flash message system for user feedback
+- **Speed Support**: gTTS slow speech parameter integration
 
 ### Frontend Components
-- **Search Interface**: Large, prominent search form with Bootstrap styling
+- **Search Interface**: Large, prominent search form with Bootstrap styling and keyboard shortcuts
 - **Responsive Design**: Mobile-first approach using Bootstrap grid system
 - **Flash Messages**: Server-side message display system
 - **Theme Toggle**: Dark/light mode switcher with localStorage persistence
-- **Navigation**: Simple home navigation with theme controls
+- **Navigation**: Simple home navigation with enhanced controls
+- **Word of the Day**: Daily vocabulary feature with random word selection
+- **Keyboard Shortcuts**: Enter to search, Escape to clear input field
+- **Speed Control**: Toggle between normal and slow pronunciation modes
 
 ### Text-to-Speech Integration
 - **Library**: Google Text-to-Speech (gTTS) for pronunciation generation
 - **Audio Delivery**: Temporary file generation and streaming to client
 - **User Control**: Audio player controls for pronunciation playback
 - **Volume Control**: Interactive volume slider with localStorage persistence and visual feedback
+- **Speed Control**: Normal and slow pronunciation modes with toggle button
+- **Download Support**: Direct audio file download with speed preference
 
 ### Korean Translation Integration
 - **Translation API**: Google Translate (googletrans library) for English-to-Korean translation

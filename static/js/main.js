@@ -4,7 +4,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeThemeToggle();
     initializeVolumeControl();
+    initializeKeyboardShortcuts();
+    initializeWordOfDay();
+    initializeSpeechSpeed();
+    initializeDownloadLinks();
 });
+
+// Popular English words for "Word of the Day"
+const popularWords = [
+    'serendipity', 'eloquent', 'ephemeral', 'ubiquitous', 'magnificent',
+    'resilient', 'innovative', 'fascinating', 'extraordinary', 'remarkable',
+    'sophisticated', 'contemporary', 'fundamental', 'substantial', 'impressive',
+    'significant', 'exceptional', 'revolutionary', 'unprecedented', 'influential',
+    'ambitious', 'mysterious', 'brilliant', 'creative', 'dynamic',
+    'authentic', 'versatile', 'comprehensive', 'distinctive', 'memorable'
+];
 
 // Play pronunciation
 function playPronunciation(word) {
@@ -23,8 +37,12 @@ function playPronunciation(word) {
     audio.pause();
     audio.currentTime = 0;
     
-    // Set audio source
-    const audioUrl = `/pronounce/${encodeURIComponent(word)}`;
+    // Check if slow speech is enabled
+    const isSlowSpeech = localStorage.getItem('slowSpeech') === 'true';
+    const speed = isSlowSpeech ? 'slow' : 'normal';
+    
+    // Set audio source with speed parameter
+    const audioUrl = `/pronounce/${encodeURIComponent(word)}/${speed}`;
     console.log('Loading audio from:', audioUrl);
     
     // Try multiple methods for audio playback
@@ -239,4 +257,116 @@ function initializeThemeToggle() {
             themeToggle.className = 'btn btn-outline-secondary';
         }
     }
+}
+
+// Keyboard shortcuts functionality
+function initializeKeyboardShortcuts() {
+    const wordInput = document.getElementById('wordInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const searchForm = document.getElementById('searchForm');
+    
+    if (!wordInput || !clearBtn || !searchForm) return;
+    
+    // Add keyboard event listeners
+    document.addEventListener('keydown', function(e) {
+        // Escape key to clear input
+        if (e.key === 'Escape') {
+            wordInput.value = '';
+            wordInput.focus();
+            e.preventDefault();
+        }
+    });
+    
+    // Clear button functionality
+    clearBtn.addEventListener('click', function() {
+        wordInput.value = '';
+        wordInput.focus();
+    });
+    
+    // Focus on input when page loads
+    wordInput.focus();
+}
+
+// Word of the Day functionality
+function initializeWordOfDay() {
+    const wordOfDayBtn = document.getElementById('wordOfDayBtn');
+    if (!wordOfDayBtn) return;
+    
+    wordOfDayBtn.addEventListener('click', function() {
+        // Get today's word based on date
+        const today = new Date();
+        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+        const wordIndex = dayOfYear % popularWords.length;
+        const todaysWord = popularWords[wordIndex];
+        
+        // Fill input and search
+        const wordInput = document.getElementById('wordInput');
+        if (wordInput) {
+            wordInput.value = todaysWord;
+            
+            // Show loading state
+            const originalText = wordOfDayBtn.innerHTML;
+            wordOfDayBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>로딩 중...';
+            wordOfDayBtn.disabled = true;
+            
+            // Submit search
+            document.getElementById('searchForm').submit();
+        }
+    });
+}
+
+// Speech speed control
+function initializeSpeechSpeed() {
+    const speedToggle = document.getElementById('speedToggle');
+    if (!speedToggle) return;
+    
+    // Load saved speed preference
+    const isSlowSpeech = localStorage.getItem('slowSpeech') === 'true';
+    updateSpeedToggleUI(isSlowSpeech);
+    
+    speedToggle.addEventListener('click', function() {
+        const currentSpeed = localStorage.getItem('slowSpeech') === 'true';
+        const newSpeed = !currentSpeed;
+        localStorage.setItem('slowSpeech', newSpeed);
+        updateSpeedToggleUI(newSpeed);
+    });
+    
+    function updateSpeedToggleUI(isSlowSpeech) {
+        if (isSlowSpeech) {
+            speedToggle.className = 'btn btn-warning';
+            speedToggle.innerHTML = '<i class="fas fa-turtle me-1"></i>느린 발음 (ON)';
+        } else {
+            speedToggle.className = 'btn btn-outline-warning';
+            speedToggle.innerHTML = '<i class="fas fa-tachometer-alt me-1"></i>느린 발음 (Slow Speech)';
+        }
+        
+        // Update download links when speed changes
+        updateDownloadLinks();
+    }
+}
+
+// Update download links with speed setting
+function initializeDownloadLinks() {
+    updateDownloadLinks();
+    
+    // Update download links when speed changes
+    const speedToggle = document.getElementById('speedToggle');
+    if (speedToggle) {
+        speedToggle.addEventListener('click', function() {
+            // Wait for localStorage to be updated
+            setTimeout(updateDownloadLinks, 100);
+        });
+    }
+}
+
+function updateDownloadLinks() {
+    const downloadLinks = document.querySelectorAll('.download-link');
+    downloadLinks.forEach(link => {
+        const word = link.getAttribute('data-word');
+        if (word) {
+            const isSlowSpeech = localStorage.getItem('slowSpeech') === 'true';
+            const speed = isSlowSpeech ? 'slow' : 'normal';
+            link.href = `/pronounce/${encodeURIComponent(word)}/${speed}`;
+        }
+    });
 }

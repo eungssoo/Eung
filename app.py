@@ -130,15 +130,17 @@ def word_definition(word):
         return redirect(url_for('index'))
 
 @app.route('/pronounce/<word>')
-def pronounce_word(word):
+@app.route('/pronounce/<word>/<speed>')
+def pronounce_word(word, speed='normal'):
     """Generate and serve pronunciation audio for the word"""
     word = word.strip().lower()
+    is_slow = speed == 'slow'
     
     try:
-        logging.info(f"Generating pronunciation for: {word}")
+        logging.info(f"Generating pronunciation for: {word} (speed: {speed})")
         
-        # Generate TTS audio
-        tts = gTTS(text=word, lang='en', slow=False)
+        # Generate TTS audio with speed setting
+        tts = gTTS(text=word, lang='en', slow=is_slow)
         
         # Create temporary file with proper cleanup
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
@@ -152,7 +154,7 @@ def pronounce_word(word):
         return send_file(temp_file.name, 
                         mimetype='audio/mpeg',
                         as_attachment=False,
-                        download_name=f'{word}_pronunciation.mp3')
+                        download_name=f'{word}_pronunciation_{speed}.mp3')
                         
     except Exception as e:
         logging.error(f"Error generating pronunciation for '{word}': {e}")
