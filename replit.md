@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Flask-based English dictionary web application that allows users to search for English word definitions with Korean translations and provides text-to-speech pronunciation functionality. The app features a clean, responsive interface with dark theme support and maintains a local search history for user convenience.
+This is a Flask-based English dictionary web application that allows users to search for English word definitions with Korean translations and provides text-to-speech pronunciation functionality. The app features a clean, responsive interface with dark/light theme support and focuses on simplicity without database dependencies.
 
 ## User Preferences
 
@@ -24,10 +24,8 @@ Preferred communication style: Simple, everyday language.
 - **Template Engine**: Jinja2 (Flask's default templating engine)
 
 ### Data Storage
-- **PostgreSQL Database**: Server-side persistent storage for search history and favorites
-- **Search History**: Database-stored search history with IP-based user tracking
-- **Favorites System**: User can save words with definitions and Korean translations
-- **Session Management**: Flask sessions with configurable secret key
+- **No Database**: Simplified architecture without persistent storage
+- **Session Management**: Flask sessions with configurable secret key for flash messages
 
 ## Key Components
 
@@ -36,21 +34,16 @@ Preferred communication style: Simple, everyday language.
   - `/` - Homepage with search form
   - `/search` - POST endpoint for word search with validation
   - `/word/<word>` - Word definition display page
-  - `/favorites` - View saved favorite words
-  - `/favorite/<word>` - Add word to favorites
-  - `/remove_favorite/<id>` - Remove word from favorites
-  - `/api/search_history` - Get recent search history from database
-- **Database Models**: SearchHistory and FavoriteWord with PostgreSQL backend
+  - `/pronounce/<word>` - Audio pronunciation generation
 - **Word Validation**: Basic alphabetic character validation
 - **Error Handling**: Flash message system for user feedback
 
 ### Frontend Components
 - **Search Interface**: Large, prominent search form with Bootstrap styling
 - **Responsive Design**: Mobile-first approach using Bootstrap grid system
-- **Search History**: Database-stored search history with client-side display
 - **Flash Messages**: Server-side message display system
 - **Theme Toggle**: Dark/light mode switcher with localStorage persistence
-- **Navigation**: Home and favorites page navigation with theme controls
+- **Navigation**: Simple home navigation with theme controls
 
 ### Text-to-Speech Integration
 - **Library**: Google Text-to-Speech (gTTS) for pronunciation generation
@@ -75,10 +68,7 @@ Preferred communication style: Simple, everyday language.
    - User requests pronunciation → gTTS generates audio file
    - Temporary file created → Served to client → File cleanup
 
-3. **Search History Flow**:
-   - Search performed → JavaScript adds to localStorage
-   - History displayed on subsequent page loads
-   - Maximum 10 recent searches maintained
+
 
 ## External Dependencies
 
@@ -95,6 +85,7 @@ Preferred communication style: Simple, everyday language.
 - **Flask**: Web framework
 - **gTTS**: Google Text-to-Speech
 - **requests**: HTTP client for API calls
+- **googletrans**: Google Translate library for Korean translations
 
 ## Deployment Strategy
 

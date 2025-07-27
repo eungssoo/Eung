@@ -31,9 +31,6 @@
                 <a href="{{ url_for('index') }}" class="btn btn-outline-info me-2">
                     <i class="fas fa-home me-1"></i>홈 (Home)
                 </a>
-                <a href="{{ url_for('view_favorites') }}" class="btn btn-outline-warning me-2">
-                    <i class="fas fa-star me-1"></i>즐겨찾기 (Favorites)
-                </a>
                 <button id="themeToggle" class="btn btn-outline-secondary">
                     <i class="fas fa-moon me-1" id="themeIcon"></i>
                     <span id="themeText">다크 모드 (Dark Mode)</span>
@@ -99,13 +96,7 @@
                                 발음 듣기 (Listen to Pronunciation)
                             </button>
                             
-                            <!-- Add to Favorites Button -->
-                            <form method="POST" action="{{ url_for('add_to_favorites', word=word) }}" class="d-inline">
-                                <button type="submit" class="btn btn-outline-warning btn-lg">
-                                    <i class="fas fa-star me-2"></i>
-                                    즐겨찾기 추가 (Add to Favorites)
-                                </button>
-                            </form>
+
                             
                             <!-- Audio element for pronunciation -->
                             <audio id="pronunciationAudio" preload="none" style="display: none;">
