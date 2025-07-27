@@ -47,8 +47,10 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Components
 - **Search Interface**: Large, prominent search form with Bootstrap styling
 - **Responsive Design**: Mobile-first approach using Bootstrap grid system
-- **Search History**: Client-side storage and display of recent searches
+- **Search History**: Database-stored search history with client-side display
 - **Flash Messages**: Server-side message display system
+- **Theme Toggle**: Dark/light mode switcher with localStorage persistence
+- **Navigation**: Home and favorites page navigation with theme controls
 
 ### Text-to-Speech Integration
 - **Library**: Google Text-to-Speech (gTTS) for pronunciation generation

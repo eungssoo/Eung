@@ -87,6 +87,8 @@
     }
 }
 
+/* Theme-specific styles */
+
 /* Dark theme enhancements */
 [data-bs-theme="dark"] .example-box {
     background-color: rgba(255, 255, 255, 0.05);
@@ -94,6 +96,38 @@
 
 [data-bs-theme="dark"] .border-top {
     border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-bs-theme="dark"] .korean-translation {
+    background-color: rgba(var(--bs-info-rgb), 0.15);
+}
+
+/* Light theme enhancements */
+[data-bs-theme="light"] .example-box {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left-color: var(--bs-info);
+}
+
+[data-bs-theme="light"] .korean-translation {
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    border-left-color: var(--bs-info);
+}
+
+[data-bs-theme="light"] .card {
+    border-color: rgba(0, 0, 0, 0.125);
+}
+
+[data-bs-theme="light"] .text-muted {
+    color: #6c757d !important;
+}
+
+/* Theme transition animation */
+html {
+    transition: color-scheme 0.3s ease;
+}
+
+* {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 /* Korean translation styling */

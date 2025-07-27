@@ -6,6 +6,7 @@ let searchHistory = [];
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     loadSearchHistoryFromDatabase();
+    initializeThemeToggle();
 });
 
 // Get current word from URL or form
@@ -172,3 +173,39 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Theme Toggle Functionality
+function initializeThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const htmlElement = document.documentElement;
+    
+    if (!themeToggle || !themeIcon || !themeText) return;
+    
+    // Get saved theme from localStorage or default to dark
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+    
+    // Add click event listener
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+    
+    function setTheme(theme) {
+        htmlElement.setAttribute('data-bs-theme', theme);
+        
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun me-1';
+            themeText.textContent = '밝은 모드 (Light Mode)';
+            themeToggle.className = 'btn btn-outline-warning';
+        } else {
+            themeIcon.className = 'fas fa-moon me-1';
+            themeText.textContent = '다크 모드 (Dark Mode)';
+            themeToggle.className = 'btn btn-outline-dark';
+        }
+    }
+}
