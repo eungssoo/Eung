@@ -183,8 +183,8 @@ function initializeThemeToggle() {
     
     if (!themeToggle || !themeIcon || !themeText) return;
     
-    // Get saved theme from localStorage or default to dark
-    const savedTheme = localStorage.getItem('theme') || 'dark';
+    // Get saved theme from localStorage or default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     
     // Add click event listener
@@ -198,14 +198,25 @@ function initializeThemeToggle() {
     function setTheme(theme) {
         htmlElement.setAttribute('data-bs-theme', theme);
         
+        // Manage dark theme CSS file
+        const darkThemeCSS = document.getElementById('darkThemeCSS');
+        
         if (theme === 'dark') {
+            // Enable dark theme CSS
+            if (darkThemeCSS) {
+                darkThemeCSS.disabled = false;
+            }
             themeIcon.className = 'fas fa-sun me-1';
             themeText.textContent = '밝은 모드 (Light Mode)';
             themeToggle.className = 'btn btn-outline-warning';
         } else {
+            // Disable dark theme CSS to use default light theme
+            if (darkThemeCSS) {
+                darkThemeCSS.disabled = true;
+            }
             themeIcon.className = 'fas fa-moon me-1';
             themeText.textContent = '다크 모드 (Dark Mode)';
-            themeToggle.className = 'btn btn-outline-dark';
+            themeToggle.className = 'btn btn-outline-secondary';
         }
     }
 }
