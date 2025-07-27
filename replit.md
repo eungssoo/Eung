@@ -49,6 +49,7 @@ Preferred communication style: Simple, everyday language.
 - **Library**: Google Text-to-Speech (gTTS) for pronunciation generation
 - **Audio Delivery**: Temporary file generation and streaming to client
 - **User Control**: Audio player controls for pronunciation playback
+- **Volume Control**: Interactive volume slider with localStorage persistence and visual feedback
 
 ### Korean Translation Integration
 - **Translation API**: Google Translate (googletrans library) for English-to-Korean translation

@@ -3,6 +3,7 @@
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     initializeThemeToggle();
+    initializeVolumeControl();
 });
 
 // Play pronunciation
@@ -61,6 +62,64 @@ function playPronunciation(word) {
             btn.disabled = false;
         }
     }, 10000); // 10 second timeout
+}
+
+// Volume control functionality
+function initializeVolumeControl() {
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeDisplay = document.getElementById('volumeDisplay');
+    const audio = document.getElementById('pronunciationAudio');
+    
+    if (!volumeSlider || !volumeDisplay || !audio) return;
+    
+    // Load saved volume from localStorage or default to 70%
+    const savedVolume = localStorage.getItem('audioVolume') || 70;
+    volumeSlider.value = savedVolume;
+    volumeDisplay.textContent = savedVolume + '%';
+    audio.volume = savedVolume / 100;
+    
+    // Add event listener for volume changes
+    volumeSlider.addEventListener('input', function() {
+        const volume = this.value;
+        audio.volume = volume / 100;
+        volumeDisplay.textContent = volume + '%';
+        localStorage.setItem('audioVolume', volume);
+        
+        // Update volume icon based on level
+        updateVolumeIcons(volume);
+    });
+    
+    // Initialize volume icons
+    updateVolumeIcons(savedVolume);
+}
+
+// Update volume icons based on volume level
+function updateVolumeIcons(volume) {
+    const volumeControl = document.querySelector('.volume-control');
+    if (!volumeControl) return;
+    
+    const lowIcon = volumeControl.querySelector('.fa-volume-down');
+    const highIcon = volumeControl.querySelector('.fa-volume-up');
+    
+    if (lowIcon && highIcon) {
+        // Reset all icons
+        lowIcon.className = 'fas text-muted';
+        highIcon.className = 'fas text-muted';
+        
+        if (volume == 0) {
+            lowIcon.className = 'fas fa-volume-mute text-danger';
+            highIcon.className = 'fas fa-volume-up text-muted';
+        } else if (volume <= 30) {
+            lowIcon.className = 'fas fa-volume-down text-warning';
+            highIcon.className = 'fas fa-volume-up text-muted';
+        } else if (volume <= 70) {
+            lowIcon.className = 'fas fa-volume-down text-muted';
+            highIcon.className = 'fas fa-volume-up text-info';
+        } else {
+            lowIcon.className = 'fas fa-volume-down text-muted';
+            highIcon.className = 'fas fa-volume-up text-success';
+        }
+    }
 }
 
 // Theme toggle functionality
