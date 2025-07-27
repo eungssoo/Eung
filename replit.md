@@ -46,7 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **Flash Messages**: Server-side message display system
 - **Theme Toggle**: Dark/light mode switcher with localStorage persistence
 - **Navigation**: Simple home navigation with enhanced controls
-- **Word of the Day**: Daily vocabulary feature with random word selection
+- **Random Word**: Instant random vocabulary word selection
 - **Keyboard Shortcuts**: Enter to search, Escape to clear input field
 - **Speed Control**: Toggle between normal and slow pronunciation modes
 

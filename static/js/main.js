@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeThemeToggle();
     initializeVolumeControl();
     initializeKeyboardShortcuts();
-    initializeWordOfDay();
+    initializeRandomWord();
     initializeSpeechSpeed();
     initializeDownloadLinks();
 });
@@ -287,27 +287,25 @@ function initializeKeyboardShortcuts() {
     wordInput.focus();
 }
 
-// Word of the Day functionality
-function initializeWordOfDay() {
-    const wordOfDayBtn = document.getElementById('wordOfDayBtn');
-    if (!wordOfDayBtn) return;
+// Random Word functionality
+function initializeRandomWord() {
+    const randomWordBtn = document.getElementById('randomWordBtn');
+    if (!randomWordBtn) return;
     
-    wordOfDayBtn.addEventListener('click', function() {
-        // Get today's word based on date
-        const today = new Date();
-        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        const wordIndex = dayOfYear % popularWords.length;
-        const todaysWord = popularWords[wordIndex];
+    randomWordBtn.addEventListener('click', function() {
+        // Get random word from the list
+        const randomIndex = Math.floor(Math.random() * popularWords.length);
+        const randomWord = popularWords[randomIndex];
         
         // Fill input and search
         const wordInput = document.getElementById('wordInput');
         if (wordInput) {
-            wordInput.value = todaysWord;
+            wordInput.value = randomWord;
             
             // Show loading state
-            const originalText = wordOfDayBtn.innerHTML;
-            wordOfDayBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>로딩 중...';
-            wordOfDayBtn.disabled = true;
+            const originalText = randomWordBtn.innerHTML;
+            randomWordBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>로딩 중...';
+            randomWordBtn.disabled = true;
             
             // Submit search
             document.getElementById('searchForm').submit();
